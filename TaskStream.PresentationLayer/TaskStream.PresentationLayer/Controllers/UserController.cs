@@ -38,6 +38,5 @@ namespace TaskStream.API.Controllers
             var user = await _userService.GetUserByIdAsync(userId);
             return user;
         }
-        //update ve delete eklenecek
     }
 }
