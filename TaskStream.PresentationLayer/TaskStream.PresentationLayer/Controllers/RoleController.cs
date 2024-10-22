@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TaskStream.EntityLayer.Dtos;
 using TaskStream.EntityLayer.Entity;
 
 namespace TaskStream.PresentationLayer.Controllers;
 
+
+
+[Route("api/[controller]")]
 public class RoleController : Controller
 {
     private readonly RoleManager<IdentityRole> _roleManager;
@@ -18,19 +22,32 @@ public class RoleController : Controller
         _roleManager = roleManager;
     }
 
-    [HttpPost("create-role")]
-    public async Task<IActionResult> CreateRole(string roleName)
+    [HttpGet]
+    public async Task<IActionResult> GetAllRoles()
     {
-        if (await _roleManager.RoleExistsAsync(roleName))
+        var roles = await _roleManager.Roles.ToListAsync();  
+        return Ok(roles);
+    }
+    [HttpPost("create-role")]
+    public async Task<IActionResult> CreateRole([FromQuery] string roleName)
+    {
+        if (string.IsNullOrEmpty(roleName))
         {
-            return BadRequest("Role already exist.");
+            return BadRequest("Role name cannot be empty.");
         }
 
-        await _roleManager.CreateAsync(new IdentityRole(roleName));
-        return Ok(new { message = "Role created successfully." });
-    }
+        if (await _roleManager.RoleExistsAsync(roleName))
+        {
+            return Conflict("Role already exists.");
+        }
+
+        var role = new IdentityRole(roleName);
+        await _roleManager.CreateAsync(role);
     
-    [Authorize(Policy = "AdminPolicy")]
+        return Ok(new { message = "Role created successfully!" });
+    }
+
+
     [HttpPost("assign-role")]
     public async Task<IActionResult> AssignRole([FromBody] RoleAssignmentRequestDto requestDto)
     {
