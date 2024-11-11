@@ -12,10 +12,13 @@ namespace TaskStream.PresentationLayer.Controllers;
 public class TeamController:ControllerBase
 {
     private readonly ITeamService _teamService;
+    private readonly ILogger<TeamController> _logger;
+
     
-    public TeamController(ITeamService teamService)
+    public TeamController(ITeamService teamService, ILogger<TeamController> logger)
     {
         _teamService = teamService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -119,46 +122,36 @@ public class TeamController:ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
-    
     [HttpDelete("Delete/{id}")]
     public async Task<IActionResult> DeleteTeam(Guid id)
     {
         try
         {
             var existingItem = await _teamService.GetByIdAsync(id);
-            
+        
             if (existingItem == null)
             {
-                return StatusCode(404, $"Items not found.");
+                return NotFound(new { message = "Team not found." });
             }
-            
-            var team=await _teamService.DeleteAsync(id);
-            return Ok(new { message = "Team deleted successfully" });
+        
+            var isDeleted = await _teamService.DeleteAsync(id);
+        
+            if (isDeleted)
+            {
+                return Ok(new { message = "Team deleted successfully" });
 
-            
-        }catch(Exception ex)
+            }
+            return StatusCode(500, new { message = "An error occurred while deleting the team." });
+
+        }
+        catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+           
+            _logger.LogError(ex, "An error occurred while deleting the team with ID {id}", id);
+
+            return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
         }
     }
-    /*[HttpGet("users/{teamId}")]
-    public async Task<IActionResult> GetUsersAndTasksByTeamId(Guid teamId)
-    {
-        try
-        {
-            var result = await _teamService.GetUsersAndTasksByTeamIdAsync(teamId);
-        
-            if (result == null || !result.Any())
-            {
-                return NotFound("No users or tasks found for the specified team.");
-            }
-        
-            return Ok(result);
-        }
-        catch(Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }*/
+
 
 }

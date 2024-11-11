@@ -109,7 +109,7 @@ namespace TaskStream.PresentationLayer.Controllers
                 {
                     return StatusCode(500, "Failed to create task");
                 }
-                return Ok(new { message = "Task created successfully", result });
+                return Ok(new { message = "Task created successfully", userTask });
             }
             catch (Exception ex)
             {
@@ -163,7 +163,12 @@ namespace TaskStream.PresentationLayer.Controllers
                     return NotFound(new { message = "Task not found." });
                 }
 
-                await _service.DeleteAsync(id);
+                bool isDeleted = await _service.DeleteAsync(id);
+                if (!isDeleted)
+                {
+                    return StatusCode(500, new { message = "An error occurred while deleting the task." });
+                }
+
                 return Ok(new { message = "Task deleted successfully" });
             }
             catch (Exception ex)
@@ -171,7 +176,6 @@ namespace TaskStream.PresentationLayer.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        
-        
+
     }
 }

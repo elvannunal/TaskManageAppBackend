@@ -55,24 +55,18 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
             return false;
         }
     }
+    
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        try
+        var entity=await _dbset.FindAsync(id);
+        if (entity!=null)
         {
-            var entity = await _dbset.FindAsync(id);
-            if (entity != null)
-            {
-                _dbset.Remove(entity);
-                await _context.SaveChangesAsync(); 
-                return true;
-            }
-            return false;
+            _dbset.Remove(entity);
+            _context.SaveChanges();
+            return true;
         }
-        catch
-        {
-            return false;
-        }
-    }
 
+        return false;
+    }
 }

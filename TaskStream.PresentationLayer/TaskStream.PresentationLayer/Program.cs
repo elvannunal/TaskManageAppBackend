@@ -23,6 +23,7 @@ builder.Services.AddCors(options =>
         });
 });
 
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -34,10 +35,10 @@ builder.Services.AddApplicationServices();
 var jwtSettingsSection = builder.Configuration.GetSection("Jwt");
 builder.Services.Configure<JwtSettings>(jwtSettingsSection);
 var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
-
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
 
 
 builder.Services.AddAuthentication(options =>
@@ -82,9 +83,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors();
 app.MapControllers();
 
 app.Run();
